@@ -13,24 +13,24 @@ def init_db():
     CREATE TABLE IF NOT EXISTS files (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filepath TEXT UNIQUE,
-    last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
     """)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS symbols(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                fild_id INTEGER,
+                file_id INTEGER,
                 name TEXT,
                 type TEXT,
                 start_line INTEGER,
                 end_line INTEGER,
                 content TEXT,
-                FOREIGN KWY (file_id) REFERENCES files (id) ON DELETE CASCADE
+                FOREIGN KEY (file_id) REFERENCES files (id) ON DELETE CASCADE)
                 """)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS imports (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     file_id INTEGER,
     imported_module TEXT,
-    FOREIGN KEY (file_id) REFERENCES files (id) ON DELETE CASCADE""")
+    FOREIGN KEY (file_id) REFERENCES files (id) ON DELETE CASCADE)""")
     conn.commit()
     conn.close()

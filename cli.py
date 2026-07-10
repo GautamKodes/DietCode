@@ -21,7 +21,7 @@ def index(path: str = "."):
 
     conn = get_db()
     cur = conn.cursor()
-    file_count = cur.execute("SELECT COUNT(* FROM files").fetchone()[0]
+    file_count = cur.execute("SELECT COUNT(*) FROM files").fetchone()[0]
     symbol_count = cur.execute("SELECT COUNT(*) FROM symbols").fetchone()[0]
     conn.close()
 

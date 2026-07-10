@@ -24,8 +24,8 @@ def parse_file(filepath: str):
                     "end_line" : node.end_point[0] + 1,
                     "content": code[node.start_byte:node.end_byte]
                 })
-                for child in node.children:
-                    traverse(child)
+        for child in node.children:
+            traverse(child)
 
     traverse(root_node)
     return symbols
