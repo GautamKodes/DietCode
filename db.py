@@ -6,7 +6,7 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-def inti_db():
+def init_db():
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
