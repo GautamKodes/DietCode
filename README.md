@@ -24,7 +24,7 @@ To install DietCode globally without needing to manage virtual environments or p
 
 ```bash
 # Clone the repository
-git clone https://github.com/GautamKodes/CodeCake.git
+git clone https://github.com/GautamKodes/DietCode.git
 cd DietCode
 
 # Run the installer
