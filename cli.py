@@ -24,16 +24,22 @@ LOGO_TEXT = """
 """
 
 def print_banner():
-    logo_lines = LOGO_TEXT.strip("\n").split("\n")
-    styled_logo = ""
-    colors = ["bold bright_cyan", "bold cyan", "cyan", "bold blue", "blue"]
-    for line, color in zip(logo_lines, colors):
-        styled_logo += f"[{color}]{line} [/{color}]\n"
+    if console.width < 60:
+        logo_content = "[bold bright_cyan]DIETCODE[/bold bright_cyan]"
+    else:
+        logo_lines = LOGO_TEXT.strip("\n").split("\n")
+        styled_logo = ""
+        colors = ["bold bright_cyan", "bold cyan", "cyan", "bold blue", "blue"]
+        for line, color in zip(logo_lines, colors):
+            styled_logo += f"[{color}]{line} [/{color}]\n"
+        logo_content = styled_logo.strip("\n")
         
     tagline = "[bold white]DietCode[/bold white] [dim]•[/dim] [italic cyan]Source code cartographer for navigation and safe commits.[/italic cyan]"
+    if console.width < 80:
+        tagline = "[bold white]DietCode[/bold white]\n[dim]Source code cartographer[/dim]"
     
     panel = Panel(
-        Align.center(f"{styled_logo}\n{tagline}"),
+        Align.center(f"{logo_content}\n\n{tagline}"),
         box=box.DOUBLE,
         border_style="cyan",
         padding=(1, 2)
