@@ -10,6 +10,8 @@ setup(
         "tree-sitter",
         "tree-sitter-python",
         "tree-sitter-javascript",
+        "tree-sitter-rust",
+        "tree-sitter-java",
         "networkx",
         "sentence-transformers",
         "pyfiglet"

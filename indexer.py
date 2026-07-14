@@ -53,6 +53,10 @@ def generate_file_summary(filepath: str, symbols: list):
         parts.append("Crawls the workspace directory structure and indexes files")
     if "build_mission_brief" in code or "query_ollama" in code:
         parts.append("Generates token-optimized AI prompts and mission briefs")
+    if "org.springframework" in code or "@RestController" in code or "@Service" in code:
+        parts.append("Implements Java Spring Boot web controller, service, or component")
+    elif "java." in code or "public class" in code:
+        parts.append("Implements a Java class, interface, or package module")
 
     if parts:
         return " and ".join(parts) + "."
@@ -89,7 +93,7 @@ def index_project(root_dir: str):
         dirnames[:] = [d for d in dirnames if d not in IGNORE_DIRS]
 
         for filename in filenames:
-            if filename.endswith((".py", ".rs")):
+            if filename.endswith((".py", ".rs", ".java")):
                 filepath = os.path.join(dirpath, filename)
                 try:
                     cur.execute(
