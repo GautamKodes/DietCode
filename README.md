@@ -89,7 +89,14 @@ dietcode> search Parser
 dietcode> exit
 ```
 
+### 🌳 7. Visual Codebase Tree
+Print your project's directory tree with file purposes embedded directly next to their names:
+```bash
+dietcode tree
+```
+
 ---
+
 
 ## 🗃️ Database Schema
 

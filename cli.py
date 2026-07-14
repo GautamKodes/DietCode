@@ -201,6 +201,57 @@ def map():
     console.print(table)
 
 @app.command()
+def tree(path: str = "."):
+    print_banner()
+    console.print(f"[bold blue]Generating Codebase Structure Tree for '{path}'...[/bold blue]\n")
+    
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT filepath, summary FROM files")
+    file_summaries = {r["filepath"]: r["summary"] for r in cur.fetchall()}
+    conn.close()
+    
+    root_path = os.path.abspath(path)
+    if not os.path.exists(root_path):
+        console.print(f"[red]Error: Path '{path}' does not exist.[/red]")
+        return
+        
+    IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "dietcode.egg-info", "build", "dist"}
+    
+    root_node = Tree(f"📁 [bold cyan]{os.path.basename(root_path) or root_path}[/bold cyan]")
+    
+    def build_tree(current_path, parent_tree):
+        try:
+            entries = sorted(os.listdir(current_path))
+        except Exception:
+            return
+            
+        for entry in entries:
+            if entry in IGNORE_DIRS:
+                continue
+                
+            entry_path = os.path.join(current_path, entry)
+            matched_summary = None
+            for db_path, summary in file_summaries.items():
+                if os.path.abspath(db_path) == os.path.abspath(entry_path):
+                    matched_summary = summary
+                    break
+            
+            if os.path.isdir(entry_path):
+                branch = parent_tree.add(f"📁 [bold blue]{entry}[/bold blue]")
+                build_tree(entry_path, branch)
+            else:
+                if entry.endswith((".py", ".rs", ".java")):
+                    summary_text = f" [dim]• {matched_summary}[/dim]" if matched_summary else " [dim]• (Unindexed)[/dim]"
+                    parent_tree.add(f"📄 [green]{entry}[/green]{summary_text}")
+                else:
+                    summary_text = f" [dim]• {matched_summary}[/dim]" if matched_summary else ""
+                    parent_tree.add(f"📄 [white]{entry}[/white]{summary_text}")
+                    
+    build_tree(root_path, root_node)
+    console.print(root_node)
+
+@app.command()
 def shell():
     print_banner()
     console.print("[bold green]Welcome to the DietCode Interactive Shell![/bold green]")

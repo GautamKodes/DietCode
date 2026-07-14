@@ -77,7 +77,18 @@ dietcode brief "Add Rust support" --mode agent
 
 ---
 
+## 🌳 Codebase Structure Exploration
+
+To get a visual roadmap of a new codebase's folders and files, run:
+```bash
+dietcode tree
+```
+This prints a clean directory tree (hiding temporary folders like `.venv` or `.git`), and appends the 1-sentence purpose summary next to each file. You can see the entire layout and understand what each module does in a single glance!
+
+---
+
 ## 🐚 REPL Shell Quick Tips
+
 
 To work faster without typing the `dietcode` command prefix:
 ```bash
