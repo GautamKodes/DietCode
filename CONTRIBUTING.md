@@ -9,8 +9,8 @@ Thank you for your interest in contributing to DietCode! We welcome contribution
 1.  **Fork the repository** on GitHub.
 2.  **Clone your fork** locally:
     ```bash
-    git clone https://github.com/your-username/CodeCake.git
-    cd CodeCake
+    git clone https://github.com/your-username/DietCode.git
+    cd DietCode
     ```
 3.  **Install in editable developer mode** inside a virtual environment:
     ```bash
