@@ -91,6 +91,14 @@ def get_impact_tree(filepath: str):
             break
             
     if not resolved_target:
+        normalized_suffix = filepath.replace("\\", "/")
+        for node in G.nodes:
+            normalized_node = node.replace("\\", "/")
+            if normalized_node.endswith("/" + normalized_suffix) or normalized_node == normalized_suffix:
+                resolved_target = node
+                break
+                
+    if not resolved_target:
         return None
         
     return nx.bfs_tree(G, resolved_target)
@@ -105,6 +113,14 @@ def get_impact_path(target_filepath: str):
             resolved_target = node
             break
             
+    if not resolved_target:
+        normalized_suffix = target_filepath.replace("\\", "/")
+        for node in G.nodes:
+            normalized_node = node.replace("\\", "/")
+            if normalized_node.endswith("/" + normalized_suffix) or normalized_node == normalized_suffix:
+                resolved_target = node
+                break
+                
     if not resolved_target:
         return []
         
