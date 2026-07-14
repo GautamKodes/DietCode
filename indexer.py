@@ -34,7 +34,7 @@ def generate_file_summary(filepath: str, symbols: list):
     except Exception:
         code = ""
 
-    summary = query_ollama(f"Summarize what this Python file '{filename}' does in one short sentence under 15 words.")
+    summary = query_ollama(f"Summarize what this file '{filename}' does in one short sentence under 15 words.")
     if summary:
         return summary
 
@@ -76,7 +76,7 @@ def generate_project_summary(files_data: list):
         return summary
 
     file_names = ", ".join([os.path.basename(f) for f, _ in files_data])
-    return f"On-device Python code repository composed of {file_names}."
+    return f"On-device source code repository composed of {file_names}."
 
 def index_project(root_dir: str):
     init_db()
@@ -89,51 +89,54 @@ def index_project(root_dir: str):
         dirnames[:] = [d for d in dirnames if d not in IGNORE_DIRS]
 
         for filename in filenames:
-            if filename.endswith(".py"):
+            if filename.endswith((".py", ".rs")):
                 filepath = os.path.join(dirpath, filename)
-                cur.execute(
-                    "INSERT OR IGNORE INTO files (filepath) VALUES (?)",
-                    (filepath,)
-                )
+                try:
+                    cur.execute(
+                        "INSERT OR IGNORE INTO files (filepath) VALUES (?)",
+                        (filepath,)
+                    )
 
-                cur.execute(
-                    "SELECT id FROM files WHERE filepath = ?",
-                    (filepath,)
-                )
-                file_id = cur.fetchone()["id"]
-                cur.execute("DELETE FROM symbols WHERE file_id = ?", (file_id,))
-                cur.execute("DELETE FROM imports WHERE file_id = ?", (file_id,))
+                    cur.execute(
+                        "SELECT id FROM files WHERE filepath = ?",
+                        (filepath,)
+                    )
+                    file_id = cur.fetchone()["id"]
+                    cur.execute("DELETE FROM symbols WHERE file_id = ?", (file_id,))
+                    cur.execute("DELETE FROM imports WHERE file_id = ?", (file_id,))
 
-                symbols, imports = parse_file(filepath)
+                    symbols, imports = parse_file(filepath)
 
-                for sym in symbols:
-                    cur.execute("""
-                        INSERT INTO symbols (file_id, name, type, start_line, end_line, content) 
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (
-                        file_id,
-                        sym["name"],
-                        sym["type"],
-                        sym["start_line"],
-                        sym["end_line"],
-                        sym["content"]
-                    ))
+                    for sym in symbols:
+                        cur.execute("""
+                            INSERT INTO symbols (file_id, name, type, start_line, end_line, content) 
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, (
+                            file_id,
+                            sym["name"],
+                            sym["type"],
+                            sym["start_line"],
+                            sym["end_line"],
+                            sym["content"]
+                        ))
 
-                for imp in imports:
-                    cur.execute("""
-                        INSERT INTO imports (file_id, imported_module) 
-                        VALUES (?, ?)
-                    """, (
-                        file_id,
-                        imp
-                    ))
+                    for imp in imports:
+                        cur.execute("""
+                            INSERT INTO imports (file_id, imported_module) 
+                            VALUES (?, ?)
+                        """, (
+                            file_id,
+                            imp
+                        ))
 
-                file_summary = generate_file_summary(filepath, symbols)
-                cur.execute(
-                    "UPDATE files SET summary = ?, last_indexed = CURRENT_TIMESTAMP WHERE id = ?",
-                    (file_summary, file_id)
-                )
-                indexed_files.append((filepath, file_summary))
+                    file_summary = generate_file_summary(filepath, symbols)
+                    cur.execute(
+                        "UPDATE files SET summary = ?, last_indexed = CURRENT_TIMESTAMP WHERE id = ?",
+                        (file_summary, file_id)
+                    )
+                    indexed_files.append((filepath, file_summary))
+                except Exception as e:
+                    print(f"⚠️ Warning: Failed to index {filepath}: {e}")
 
     project_summary = generate_project_summary(indexed_files)
     cur.execute(

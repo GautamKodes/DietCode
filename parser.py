@@ -1,9 +1,21 @@
+import os
 import tree_sitter_python as tspython
+try:
+    import tree_sitter_rust as tsrust
+except ImportError:
+    tsrust = None
 from tree_sitter import Language, Parser
 
 def parse_file(filepath: str):
-    PY_LANGUAGE = Language(tspython.language())
-    parser = Parser(PY_LANGUAGE)
+    ext = os.path.splitext(filepath)[1].lower()
+    if ext == ".rs":
+        if tsrust is None:
+            return [], []
+        language = Language(tsrust.language())
+    else:
+        language = Language(tspython.language())
+
+    parser = Parser(language)
 
     with open(filepath, "rb") as f:
         code_bytes = f.read()
@@ -14,8 +26,11 @@ def parse_file(filepath: str):
     symbols = []
     imports = []
     
-    def traverse(node):
-        if node.type == "function_definition":
+    stack = [root_node]
+    while stack:
+        node = stack.pop()
+        
+        if node.type in ("function_definition", "function_item"):
             name_node = node.child_by_field_name("name")
             if name_node:
                 name = code_bytes[name_node.start_byte:name_node.end_byte].decode("utf-8")
@@ -39,9 +54,16 @@ def parse_file(filepath: str):
                 if child.type in ("dotted_name", "relative_import"):
                     imports.append(code_bytes[child.start_byte:child.end_byte].decode("utf-8"))
                     break
-        for child in node.children:
-            traverse(child)
+        elif node.type == "use_declaration":
+            imports.append(
+                code_bytes[node.start_byte:node.end_byte]
+                .decode("utf-8")
+                .replace("use", "", 1)
+                .replace(";", "")
+                .strip()
+            )
+            
+        for child in reversed(node.children):
+            stack.append(child)
 
-    traverse(root_node)
-    
     return symbols, imports
