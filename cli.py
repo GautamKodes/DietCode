@@ -10,8 +10,7 @@ from rich.tree import Tree
 from indexer import index_project
 from db import init_db, get_db
 from search import semantic_search
-from graph import get_impact_tree
-from brief import build_mission_brief
+from graph import get_impact_tree, build_dependency_graph
 
 app = typer.Typer(help="DietCode: Source code cartographer for navigation and safe commits.")
 console = Console()
@@ -157,15 +156,17 @@ def map():
     summary_row = cur.fetchone()
     project_summary = summary_row["value"] if summary_row else "No project overview cached. Run index first."
     
-    cur.execute("SELECT id, filepath, summary FROM files")
+    cur.execute("SELECT filepath, summary FROM files")
     files = cur.fetchall()
+    conn.close()
     
     if not files:
         console.print("[yellow]Codebase is empty. Run index command first to populate files.[/yellow]")
-        conn.close()
         return
 
     console.print(Panel(project_summary, title="Project Overview", border_style="cyan"))
+
+    G = build_dependency_graph()
 
     table = Table(
         title="Codebase File Map",
@@ -175,30 +176,20 @@ def map():
         header_style="bold white",
         show_lines=True
     )
-    table.add_column("File Path", style="cyan", width=25)
-    table.add_column("1-Sentence Purpose", style="white", width=40)
-    table.add_column("Imports (Direct)", style="magenta", width=20)
-    table.add_column("Direct Dependents", style="yellow", width=20)
+    table.add_column("File Path", style="cyan")
+    table.add_column("1-Sentence Purpose", style="white")
+    table.add_column("Imports (Direct)", style="magenta")
+    table.add_column("Direct Dependents", style="yellow")
 
     for f in files:
-        file_id = f["id"]
         filepath = f["filepath"]
         summary = f["summary"] or "No description."
         
-        cur.execute("SELECT imported_module FROM imports WHERE file_id = ?", (file_id,))
-        direct_imports = [imp["imported_module"] for imp in cur.fetchall()]
-        imports_text = ", ".join(direct_imports) if direct_imports else "None"
+        predecessors = [os.path.basename(p) for p in G.predecessors(filepath)]
+        imports_text = "\n".join(predecessors) if predecessors else "None"
         
-        filename = os.path.basename(filepath)
-        module_name = os.path.splitext(filename)[0]
-        cur.execute("""
-            SELECT files.filepath 
-            FROM imports 
-            JOIN files ON imports.file_id = files.id
-            WHERE imports.imported_module = ? OR imports.imported_module LIKE ?
-        """, (module_name, f"%.{module_name}"))
-        dependents = [os.path.basename(dep["filepath"]) for dep in cur.fetchall()]
-        dependents_text = ", ".join(dependents) if dependents else "None"
+        successors = [os.path.basename(p) for p in G.successors(filepath)]
+        dependents_text = "\n".join(successors) if successors else "None"
         
         table.add_row(
             os.path.basename(filepath),
@@ -207,7 +198,6 @@ def map():
             dependents_text
         )
         
-    conn.close()
     console.print(table)
 
 @app.command()

@@ -1,4 +1,5 @@
 import os
+import re
 import networkx as nx
 from db import get_db
 
@@ -38,12 +39,43 @@ def build_dependency_graph():
         else:
             module_path = imported.replace(".", "/")
             for filepath in project_files:
-                if filepath.endswith(module_path + ".py"):
+                if filepath.endswith(module_path + ".py") or filepath.endswith(module_path + ".java") or filepath.endswith(module_path + ".rs"):
                     target = filepath
                     break
         
         if target and target != importer:
             G.add_edge(target, importer)
+
+    cur.execute("""
+        SELECT s.name, f.filepath 
+        FROM symbols s
+        JOIN files f ON s.file_id = f.id
+        WHERE s.type = 'class'
+    """)
+    classes = cur.fetchall()
+    
+    file_contents = {}
+    for filepath in project_files:
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                file_contents[filepath] = f.read()
+        except Exception:
+            file_contents[filepath] = ""
+
+    for filepath in project_files:
+        code = file_contents[filepath]
+        if not code:
+            continue
+            
+        for cls in classes:
+            cls_name = cls["name"]
+            cls_file = cls["filepath"]
+            
+            if cls_file == filepath:
+                continue
+                
+            if re.search(r'\b' + re.escape(cls_name) + r'\b', code):
+                G.add_edge(cls_file, filepath)
 
     conn.close()
     return G
