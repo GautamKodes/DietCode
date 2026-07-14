@@ -29,7 +29,7 @@ def print_banner():
     styled_logo = ""
     colors = ["bold bright_cyan", "bold cyan", "cyan", "bold blue", "blue"]
     for line, color in zip(logo_lines, colors):
-        styled_logo += f"[{color}]{line}[/{color}]\n"
+        styled_logo += f"[{color}]{line} [/{color}]\n"
         
     tagline = "[bold white]DietCode[/bold white] [dim]•[/dim] [italic cyan]Source code cartographer for navigation and safe commits.[/italic cyan]"
     
