@@ -267,6 +267,9 @@ def shell():
                 break
             
             args = shlex.split(user_input)
+            if len(args) == 1 and args[0].lower() == "help":
+                args = ["--help"]
+                
             try:
                 app(args)
             except SystemExit:
