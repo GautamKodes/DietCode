@@ -17,6 +17,11 @@ def init_db():
             last_indexed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    try:
+        cur.execute("ALTER TABLE files ADD COLUMN summary TEXT")
+    except sqlite3.OperationalError:
+        pass
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS symbols (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,6 +40,12 @@ def init_db():
             file_id INTEGER,
             imported_module TEXT,
             FOREIGN KEY (file_id) REFERENCES files (id) ON DELETE CASCADE
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS project_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT
         )
     """)
     conn.commit()

@@ -1,0 +1,84 @@
+import os
+import networkx as nx
+from db import get_db
+
+def build_dependency_graph():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, filepath FROM files")
+    files = cur.fetchall()
+    
+    module_to_file = {}
+    project_files = []
+    for f in files:
+        filepath = f["filepath"]
+        project_files.append(filepath)
+        filename = os.path.basename(filepath)
+        module_name = os.path.splitext(filename)[0]
+        module_to_file[module_name] = filepath
+
+    G = nx.DiGraph()
+    for filepath in project_files:
+        G.add_node(filepath)
+
+    cur.execute("""
+        SELECT files.filepath as importer_path, imports.imported_module
+        FROM imports
+        JOIN files ON imports.file_id = files.id
+    """)
+    imports = cur.fetchall()
+
+    for imp in imports:
+        importer = imp["importer_path"]
+        imported = imp["imported_module"]
+        
+        target = None
+        if imported in module_to_file:
+            target = module_to_file[imported]
+        else:
+            module_path = imported.replace(".", "/")
+            for filepath in project_files:
+                if filepath.endswith(module_path + ".py"):
+                    target = filepath
+                    break
+        
+        if target and target != importer:
+            G.add_edge(target, importer)
+
+    conn.close()
+    return G
+
+def get_impact_tree(filepath: str):
+    G = build_dependency_graph()
+    normalized_target = os.path.abspath(filepath)
+    
+    resolved_target = None
+    for node in G.nodes:
+        if os.path.abspath(node) == normalized_target:
+            resolved_target = node
+            break
+            
+    if not resolved_target:
+        return None
+        
+    return nx.bfs_tree(G, resolved_target)
+
+def get_impact_path(target_filepath: str):
+    G = build_dependency_graph()
+    normalized_target = os.path.abspath(target_filepath)
+    
+    resolved_target = None
+    for node in G.nodes:
+        if os.path.abspath(node) == normalized_target:
+            resolved_target = node
+            break
+            
+    if not resolved_target:
+        return []
+        
+    affected = list(nx.descendants(G, resolved_target))
+    paths = []
+    for node in affected:
+        for path in nx.all_simple_paths(G, resolved_target, node):
+            paths.append(path)
+    return paths
