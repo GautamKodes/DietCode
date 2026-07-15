@@ -135,6 +135,9 @@ def get_impact_path(target_filepath: str):
     affected = list(nx.descendants(G, resolved_target))
     paths = []
     for node in affected:
-        for path in nx.all_simple_paths(G, resolved_target, node):
+        try:
+            path = nx.shortest_path(G, resolved_target, node)
             paths.append(path)
+        except nx.NetworkXNoPath:
+            pass
     return paths
