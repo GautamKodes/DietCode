@@ -19,87 +19,203 @@ DietCode is an offline-ready, privacy-first terminal utility that indexes codeba
 
 ---
 
-## 🛠️ Installation & Setup
+## 📋 System & Library Dependencies
 
-To install DietCode globally without needing to manage virtual environments or package conflicts:
+To run DietCode locally, the following dependencies are required:
+
+### System Requirements
+* **Operating System:** Linux / macOS (tested on Linux/Arch).
+* **Python:** Python 3.10 or higher.
+* **SQLite3:** Built-in with Python.
+* **Ollama (Optional):** Required to run local summaries using `qwen2.5-coder:1.5b`. If not available, DietCode falls back to rule-based static syntax heuristics.
+
+### Python Packages (Managed automatically by installer)
+* `torch` (CPU-only optimized runtime, ~350MB)
+* `sentence-transformers` (Local embedding inference)
+* `typer` (CLI structure parser)
+* `rich` (Terminal tables, progress bars, panels, and trees)
+* `networkx` (Dependency graphing & impact BFS cascades)
+* `tree-sitter` & precompiled parser grammars:
+  * `tree-sitter-python`
+  * `tree-sitter-rust`
+  * `tree-sitter-java`
+  * `tree-sitter-javascript`
+  * `tree-sitter-typescript`
+
+---
+
+## 🛠️ Installation & Setup Instructions
+
+To install DietCode globally:
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/GautamKodes/DietCode.git
 cd DietCode
 
-# Run the installer
+# 2. Run the installer script
 ./install.sh
 ```
 
-This installer will automatically:
-1. Set up an isolated Python environment in `~/.dietcode/venv`.
-2. Install the CPU-optimized PyTorch runtime (reducing size to ~350MB).
-3. Register the global `dietcode` command wrapper in `~/.local/bin/dietcode`.
+### What the installer does:
+1. Creates an isolated virtual environment at `~/.dietcode/venv`.
+2. Installs PyTorch (CPU-only version) and all required Python packages.
+3. Automatically copies local model weights to the global cache directory `~/.dietcode/model/` (ensures 100% offline startup).
+4. Creates a global runner script in `~/.local/bin/dietcode`.
+5. Prompts to start/configure Ollama and download the local `qwen2.5-coder:1.5b` model if not present.
 
-Make sure `~/.local/bin` is in your shell's `PATH` (e.g. check your `~/.bashrc` or `~/.zshrc`).
+*Note: Make sure `~/.local/bin` is in your shell's `PATH` (e.g., in your `~/.bashrc` or `~/.zshrc`).*
 
 ---
 
-
-## 💻 CLI Command Suite
+## 💻 CLI Commands (Sample Inputs & Expected Outputs)
 
 ### 📦 1. Index Codebase
-Scans the current directory, parses symbols/imports, and generates smart heuristic file summaries:
-```bash
-dietcode index
-```
+Scans the current project directory, ignoring build/dependency folders (like `.git`, `node_modules`, `.next`, `out`), parses AST structures, and generates 1-sentence summaries.
 
-### 🔍 2. Semantic Search
-Perform conceptual queries across your codebase (runs entirely offline):
-```bash
-dietcode search "verify user session tokens"
-```
-
-### 🚨 3. Change Impact Cascades
-Trace exactly which downstream files will be affected if you edit a given file:
-```bash
-dietcode impact parser.py
-```
-
-### 🗺️ 4. Onboarding Map
-Get a colorized matrix showing every file's purpose, what it imports, and who imports it:
-```bash
-dietcode map
-```
-
-### 📝 5. Generate Mission Briefs
-Generate a token-optimized prompt instructing a coding AI how to execute a task:
-```bash
-# Web Mode (Default - for copy-pasting to ChatGPT/Claude web interfaces)
-dietcode brief "Add Rust support" -m web
-
-# Agent Mode (Token-saving - for terminal agents like Claude Code)
-dietcode brief "Add Rust support" -m agent
-```
-
-### 🐚 6. Interactive REPL Shell
-Open a persistent terminal takeover shell where you can run commands instantly:
-```bash
-dietcode shell
-```
-*Example shell session:*
-```text
-dietcode> map
-dietcode> search Parser
-dietcode> exit
-```
-
-
-### 🌳 7. Visual Codebase Tree
-Print your project's directory tree with file purposes embedded directly next to their names:
-```bash
-dietcode tree
-```
-
+* **Command:**
+  ```bash
+  dietcode index
+  ```
+* **Sample Input:** Run this inside a project root directory (e.g., the DietCode repo itself).
+* **Expected Output:**
+  A live progress bar showing file crawl scanning, followed by an Indexing Summary table:
+  ```text
+               Indexing Summary             
+  ╭───────────────────────────┬────────────╮
+  │ Metric                    │      Count │
+  ├───────────────────────────┼────────────┤
+  │ Total Files Indexed       │          8 │
+  ├───────────────────────────┼────────────┤
+  │ Symbols Parsed            │         28 │
+  ╰───────────────────────────┴────────────╯
+  ```
 
 ---
 
+### 🗺️ 2. Onboarding Map
+Generates a colorized grid overview showing every file's purpose, what it imports, and who imports it.
+
+* **Command:**
+  ```bash
+  dietcode map
+  ```
+* **Sample Filter Input:** (Filter down to files containing "db")
+  ```bash
+  dietcode map --filter db
+  ```
+* **Expected Output:**
+  A fullscreen scrollable pager (press `q` to exit) showing:
+  ```text
+  Codebase File Map                                
+  ╭─────────────┬─────────────────────────┬───────────────────┬──────────────────╮
+  │ File Path   │ 1-Sentence Purpose      │ Imports (Direct)  │ Direct Dependents│
+  ├─────────────┼─────────────────────────┼───────────────────┼──────────────────┤
+  │ ./db.py     │ Handles SQLite database │ None              │ search.py        │
+  │             │ caching and queries.    │                   │ indexer.py       │
+  │             │                         │                   │ cli.py           │
+  ╰─────────────┴─────────────────────────┴───────────────────┴──────────────────╯
+  ```
+
+---
+
+### 🔍 3. Semantic Search
+Finds matching code functions and classes based on conceptual meaning using local vector embeddings.
+
+* **Command:**
+  ```bash
+  dietcode search "<QUERY>"
+  ```
+* **Sample Input:**
+  ```bash
+  dietcode search "database connection"
+  ```
+* **Expected Output:**
+  A similarity-ranked table showing matching symbols, code location, and scores:
+  ```text
+                                   Search Results                                 
+  ╭─────────┬───────────────────┬────────┬───────────────────────────────────────╮
+  │ Simila… │ Symbol            │ Type   │ Filepath                              │
+  ├─────────┼───────────────────┼────────┼───────────────────────────────────────┤
+  │  0.3695 │ get_db            │ funct… │ ./db.py:5                             │
+  │  0.2296 │ init_db           │ funct… │ ./db.py:12                            │
+  ╰─────────┴───────────────────┴────────┴───────────────────────────────────────╯
+  ```
+
+---
+
+### 🚨 4. Change Impact Cascades
+Trace exactly which downstream files import or rely on a file you are about to modify.
+
+* **Command:**
+  ```bash
+  dietcode impact <FILENAME>
+  ```
+* **Sample Input:**
+  ```bash
+  dietcode impact parser.py
+  ```
+* **Expected Output:**
+  A colored dependency cascade tree:
+  ```text
+  🚨 parser.py
+  └── indexer.py
+      └── cli.py
+  ```
+
+---
+
+### 📝 5. Generate Mission Briefs
+Generate a token-optimized markdown prompt guide directing a developer or coding agent on how to execute a feature.
+
+* **Command:**
+  ```bash
+  dietcode brief "<TASK>" [OPTIONS]
+  ```
+* **Sample Input:**
+  ```bash
+  dietcode brief "Make responsive for mobile" --mode agent
+  ```
+* **Expected Output:**
+  Writes `MISSION_BRIEF.md` to the current folder and prints a preview panel containing target files, cascades, and rules.
+
+---
+
+### 🌳 6. Visual Codebase Tree
+Displays the repository folder structure with integrated 1-sentence file summaries.
+
+* **Command:**
+  ```bash
+  dietcode tree
+  ```
+* **Sample Input:** Run `dietcode tree` inside the repository.
+* **Expected Output:**
+  ```text
+  📁 DietCode
+  ├── 📁 components
+  │   └── 📁 dashboard
+  │       ├── 📄 Sidebar.tsx • Sidebar navigation bar and menus.
+  │       └── 📄 Navbar.tsx • Navigation bar links.
+  └── 📄 README.md • Project documentation manual.
+  ```
+
+---
+
+### 🐚 7. Interactive REPL Shell
+Open a persistent terminal takeover shell where you can run commands instantly.
+
+* **Command:**
+  ```bash
+  dietcode shell
+  ```
+* **Expected Output:**
+  ```text
+  dietcode> index
+  dietcode> search Parser
+  dietcode> exit
+  ```
+
+---
 
 ## 🗃️ Database Schema
 
