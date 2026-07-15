@@ -224,11 +224,13 @@ def map():
             )
             progress.advance(task_rows)
 
-    console.print(Panel(project_summary, title="Project Overview", border_style="cyan"))
-    console.print(table)
+    with console.pager(styles=True):
+        console.print(Panel(project_summary, title="Project Overview", border_style="cyan"))
+        console.print(table)
 
 @app.command()
 def tree(path: str = "."):
+
     print_banner()
     with console.status(f"[bold blue]Generating Codebase Structure Tree...[/bold blue]", spinner="dots"):
         conn = get_db()
