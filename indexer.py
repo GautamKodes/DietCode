@@ -5,7 +5,7 @@ import urllib.error
 from db import get_db, init_db
 from parser import parse_file
 
-IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model"}
+IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "build", "dist"}
 
 def query_ollama(prompt: str):
     url = "http://localhost:11434/api/generate"
@@ -57,6 +57,14 @@ def generate_file_summary(filepath: str, symbols: list):
         parts.append("Implements Java Spring Boot web controller, service, or component")
     elif "java." in code or "public class" in code:
         parts.append("Implements a Java class, interface, or package module")
+    if "react" in code or "next/" in code or "import React" in code or "useState" in code:
+        parts.append("Implements a React/Next.js frontend UI component")
+    elif "express" in code or "require('express')" in code:
+        parts.append("Implements an Express backend server or router")
+    elif "typescript" in code or "interface " in code or "export type" in code:
+        parts.append("Implements a TypeScript class, type definition, or module")
+    elif "javascript" in code or "module.exports" in code:
+        parts.append("Implements a JavaScript logic module")
 
     if parts:
         return " and ".join(parts) + "."
@@ -93,7 +101,7 @@ def index_project(root_dir: str):
         dirnames[:] = [d for d in dirnames if d not in IGNORE_DIRS]
 
         for filename in filenames:
-            if filename.endswith((".py", ".rs", ".java")):
+            if filename.endswith((".py", ".rs", ".java", ".js", ".jsx", ".ts", ".tsx")):
                 filepath = os.path.join(dirpath, filename)
                 try:
                     cur.execute(

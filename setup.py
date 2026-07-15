@@ -10,6 +10,7 @@ setup(
         "tree-sitter",
         "tree-sitter-python",
         "tree-sitter-javascript",
+        "tree-sitter-typescript",
         "tree-sitter-rust",
         "tree-sitter-java",
         "networkx",
