@@ -186,12 +186,14 @@ def map():
         box=box.ROUNDED,
         border_style="blue",
         header_style="bold white",
-        show_lines=True
+        show_lines=True,
+        expand=True
     )
-    table.add_column("File Path", style="cyan")
-    table.add_column("1-Sentence Purpose", style="white")
-    table.add_column("Imports (Direct)", style="magenta")
-    table.add_column("Direct Dependents", style="yellow")
+    table.add_column("File Path", style="cyan", ratio=2, no_wrap=True)
+    table.add_column("1-Sentence Purpose", style="white", ratio=4)
+    table.add_column("Imports (Direct)", style="magenta", ratio=3)
+    table.add_column("Direct Dependents", style="yellow", ratio=3)
+
 
     with Progress(
         SpinnerColumn(),
