@@ -194,10 +194,10 @@ def map(
         show_lines=True,
         expand=True
     )
-    table.add_column("File Path", style="cyan", ratio=2, no_wrap=True)
-    table.add_column("1-Sentence Purpose", style="white", ratio=4)
-    table.add_column("Imports (Direct)", style="magenta", ratio=3)
-    table.add_column("Direct Dependents", style="yellow", ratio=3)
+    table.add_column("File Path", style="cyan", ratio=3)
+    table.add_column("1-Sentence Purpose", style="white", ratio=5)
+    table.add_column("Imports (Direct)", style="magenta", ratio=2)
+    table.add_column("Direct Dependents", style="yellow", ratio=2)
 
     with Progress(
         SpinnerColumn(),
@@ -223,12 +223,13 @@ def map(
             dependents_text = "\n".join(successors) if successors else "None"
             
             table.add_row(
-                os.path.basename(filepath),
+                filepath,
                 f["summary"] or "No description.",
                 imports_text,
                 dependents_text
             )
             progress.advance(task_rows)
+
 
     with console.pager(styles=True):
         console.print(Panel(project_summary, title="Project Overview", border_style="cyan"))
