@@ -3,6 +3,7 @@ import json
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from db import get_db
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TaskProgressColumn
 
 def get_model():
     local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model")
@@ -12,40 +13,51 @@ def get_model():
 
 def generate_embeddings():
     conn = get_db()
-    cur = conn.cursor()
-    
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS symbol_embeddings (
-            symbol_id INTEGER PRIMARY KEY,
-            embedding TEXT,
-            FOREIGN KEY (symbol_id) REFERENCES symbols (id) ON DELETE CASCADE
-        )
-    """)
-    conn.commit()
-
-    cur.execute("""
-        SELECT id, name, content 
-        FROM symbols 
-        WHERE id NOT IN (SELECT symbol_id FROM symbol_embeddings)
-    """)
-    symbols = cur.fetchall()
-
-    if not symbols:
-        conn.close()
-        return
-
-    model = get_model()
-    for sym in symbols:
-        text = f"{sym['name']}\n{sym['content']}"
-        embedding = model.encode(text)
-        embedding_json = json.dumps(embedding.tolist())
+    try:
+        cur = conn.cursor()
         cur.execute("""
-            INSERT OR REPLACE INTO symbol_embeddings (symbol_id, embedding)
-            VALUES (?, ?)
-        """, (sym["id"], embedding_json))
+            CREATE TABLE IF NOT EXISTS symbol_embeddings (
+                symbol_id INTEGER PRIMARY KEY,
+                embedding TEXT,
+                FOREIGN KEY (symbol_id) REFERENCES symbols (id) ON DELETE CASCADE
+            )
+        """)
+        conn.commit()
+
+        cur.execute("""
+            SELECT id, name, content 
+            FROM symbols 
+            WHERE id NOT IN (SELECT symbol_id FROM symbol_embeddings)
+        """)
+        symbols = cur.fetchall()
+
+        if not symbols:
+            return
+
+        model = get_model()
         
-    conn.commit()
-    conn.close()
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=40),
+            TaskProgressColumn(),
+            transient=True
+        ) as progress:
+            task = progress.add_task("[bold cyan]Generating semantic search index...", total=len(symbols))
+            for sym in symbols:
+                progress.update(task, description=f"[bold cyan]Encoding symbol: {sym['name']}")
+                text = f"{sym['name']}\n{sym['content']}"
+                embedding = model.encode(text)
+                embedding_json = json.dumps(embedding.tolist())
+                cur.execute("""
+                    INSERT OR REPLACE INTO symbol_embeddings (symbol_id, embedding)
+                    VALUES (?, ?)
+                """, (sym["id"], embedding_json))
+                progress.advance(task)
+            
+        conn.commit()
+    finally:
+        conn.close()
 
 def semantic_search(query: str, top_n: int = 5):
     generate_embeddings()

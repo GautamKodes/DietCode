@@ -11,6 +11,7 @@ from indexer import index_project
 from db import init_db, get_db
 from search import semantic_search
 from graph import get_impact_tree, build_dependency_graph
+from brief import build_mission_brief
 
 app = typer.Typer(help="DietCode: Source code cartographer for navigation and safe commits.")
 console = Console()
@@ -39,7 +40,7 @@ def print_banner():
         tagline = "[bold white]DietCode[/bold white]\n[dim]Source code cartographer[/dim]"
     
     panel = Panel(
-        Align.center(f"{logo_content}\n\n{tagline}"),
+        Align.center(f"{styled_logo}\n{tagline}"),
         box=box.DOUBLE,
         border_style="cyan",
         padding=(1, 2)
@@ -58,7 +59,6 @@ def index(path: str = "."):
     index_project(path)
 
     conn = get_db()
-
     cur = conn.cursor()
     file_count = cur.execute("SELECT COUNT(*) FROM files").fetchone()[0]
     symbol_count = cur.execute("SELECT COUNT(*) FROM symbols").fetchone()[0]
@@ -141,8 +141,19 @@ def brief(
     mode: str = typer.Option("web", "--mode", "-m", help="Target mode: 'web' (human copy-paste layout) or 'agent' (token-efficient agent layout)")
 ):
     print_banner()
-    with console.status(f"[bold blue]Generating mission brief for: '{task}'...[/bold blue]", spinner="dots"):
+    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TaskProgressColumn
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(bar_width=40),
+        TaskProgressColumn(),
+        transient=True
+    ) as progress:
+        p_task = progress.add_task("[bold cyan]Generating mission brief...", total=100)
+        progress.update(p_task, completed=30)
         brief_content = build_mission_brief(task, force_files=files, mode=mode)
+        progress.update(p_task, completed=100)
     
     with open("MISSION_BRIEF.md", "w", encoding="utf-8") as f:
         f.write(brief_content)
@@ -153,40 +164,51 @@ def brief(
 @app.command()
 def map():
     print_banner()
-    with console.status("[bold blue]Generating Codebase Dependency Map...[/bold blue]", spinner="dots"):
-        conn = get_db()
-        cur = conn.cursor()
-        
-        cur.execute("SELECT value FROM project_meta WHERE key = 'summary'")
-        summary_row = cur.fetchone()
-        project_summary = summary_row["value"] if summary_row else "No project overview cached. Run index first."
-        
-        cur.execute("SELECT filepath, summary FROM files")
-        files = cur.fetchall()
-        conn.close()
-        
-        if not files:
-            console.print("[yellow]Codebase is empty. Run index command first to populate files.[/yellow]")
-            return
+    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TaskProgressColumn
+    
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT value FROM project_meta WHERE key = 'summary'")
+    summary_row = cur.fetchone()
+    project_summary = summary_row["value"] if summary_row else "No project overview cached. Run index first."
+    
+    cur.execute("SELECT filepath, summary FROM files")
+    files = cur.fetchall()
+    conn.close()
+    
+    if not files:
+        console.print("[yellow]Codebase is empty. Run index command first to populate files.[/yellow]")
+        return
 
+    table = Table(
+        title="Codebase File Map",
+        title_style="bold cyan",
+        box=box.ROUNDED,
+        border_style="blue",
+        header_style="bold white",
+        show_lines=True
+    )
+    table.add_column("File Path", style="cyan")
+    table.add_column("1-Sentence Purpose", style="white")
+    table.add_column("Imports (Direct)", style="magenta")
+    table.add_column("Direct Dependents", style="yellow")
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(bar_width=40),
+        TaskProgressColumn(),
+        transient=True
+    ) as progress:
+        task_graph = progress.add_task("[bold cyan]Analyzing dependencies...", total=100)
+        progress.update(task_graph, completed=20)
         G = build_dependency_graph()
-
-        table = Table(
-            title="Codebase File Map",
-            title_style="bold cyan",
-            box=box.ROUNDED,
-            border_style="blue",
-            header_style="bold white",
-            show_lines=True
-        )
-        table.add_column("File Path", style="cyan")
-        table.add_column("1-Sentence Purpose", style="white")
-        table.add_column("Imports (Direct)", style="magenta")
-        table.add_column("Direct Dependents", style="yellow")
-
+        progress.update(task_graph, completed=100)
+        
+        task_rows = progress.add_task("[bold cyan]Compiling onboarding file map...", total=len(files))
         for f in files:
             filepath = f["filepath"]
-            summary = f["summary"] or "No description."
+            progress.update(task_rows, description=f"[bold cyan]Mapping: {os.path.basename(filepath)}")
             
             predecessors = [os.path.basename(p) for p in G.predecessors(filepath)]
             imports_text = "\n".join(predecessors) if predecessors else "None"
@@ -196,10 +218,11 @@ def map():
             
             table.add_row(
                 os.path.basename(filepath),
-                summary,
+                f["summary"] or "No description.",
                 imports_text,
                 dependents_text
             )
+            progress.advance(task_rows)
 
     console.print(Panel(project_summary, title="Project Overview", border_style="cyan"))
     console.print(table)
