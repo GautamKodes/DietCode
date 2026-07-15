@@ -246,9 +246,11 @@ def tree(path: str = "."):
             console.print(f"[red]Error: Path '{path}' does not exist.[/red]")
             return
             
-        IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "dietcode.egg-info", "build", "dist"}
+        IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "dietcode.egg-info", "build", "dist", ".next", "out"}
+
         
         root_node = Tree(f"📁 [bold cyan]{os.path.basename(root_path) or root_path}[/bold cyan]")
+
         
         def build_tree(current_path, parent_tree):
             try:

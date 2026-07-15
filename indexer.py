@@ -6,9 +6,10 @@ from db import get_db, init_db
 from parser import parse_file
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TaskProgressColumn
 
-IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "build", "dist"}
+IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "build", "dist", ".next", "out"}
 
 def query_ollama(prompt: str):
+
     url = "http://localhost:11434/api/generate"
     data = {
         "model": "qwen2.5-coder:1.5b",
@@ -96,7 +97,13 @@ def index_project(root_dir: str):
     conn = get_db()
     cur = conn.cursor()
 
+    for ignore in IGNORE_DIRS:
+        cur.execute("DELETE FROM files WHERE filepath LIKE ?", (f"%/{ignore}/%",))
+        cur.execute("DELETE FROM files WHERE filepath LIKE ?", (f"{ignore}/%",))
+    conn.commit()
+
     files_to_index = []
+
     for dirpath, dirnames, filenames in os.walk(root_dir):
         dirnames[:] = [d for d in dirnames if d not in IGNORE_DIRS]
         for filename in filenames:
