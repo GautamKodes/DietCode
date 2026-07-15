@@ -17,15 +17,20 @@ dietcode index
 ```
 *DietCode traverses all source directories, ignoring Git configurations, virtual environments, and caches, and parses classes and functions using Tree-sitter.*
 
-### Step 2: Read the Codebase Layout
-Generate a structural bird's-eye view directory tree of the project with integrated purpose summaries:
+### Step 2: Read the Codebase Map & Layout
+Generate a structural bird's-eye view matrix table of the project:
+```bash
+dietcode map
+```
+Or view the file tree with descriptions integrated directly:
 ```bash
 dietcode tree
 ```
-Use this visual structure to:
-*   Understand the purpose of every file from its 1-sentence summary next to the name.
-*   Identify layout entry points and source modules at a glance.
-*   Note: The old `dietcode map` matrix output command is temporarily dormant/disabled.
+Use these onboarding visuals to:
+*   Identify the entry point files (files with no direct dependents).
+*   Understand the purpose of every file from its 1-sentence summary.
+*   Trace direct downstream connections and imports.
+
 
 ### Step 3: Run Concept Queries
 If you need to find where a specific functionality is implemented, run a semantic search:
@@ -96,8 +101,11 @@ dietcode shell
 ```
 Inside the shell:
 *   Use `help` to list commands.
-*   Run commands sequentially (e.g., `index` then `tree` then `search database`).
+*   Run commands sequentially (e.g., `index` then `map` or `tree` then `search database`).
 *   Press `Ctrl-C` or type `exit` to quit.
+
+
+
 
 ---
 
