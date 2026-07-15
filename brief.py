@@ -164,6 +164,7 @@ If you modify the targeted files, the following code paths are affected. You MUS
 3. Backward Compatibility: Existing functionality (such as Python code indexing) must continue to work unchanged.
 4. Dependencies: Do not add new third-party dependencies or packages unless explicitly requested.
 5. Target Escape Hatch: If this task cannot be fully implemented within the targeted files listed above, output no functional changes and write a clear block comment in the modified files explaining which additional files (such as parser.py or indexer.py) must be modified to achieve the goal.
+6. Clarifying Questions: If the task prompt is vague, ambiguous, or lacks functional/design specifics, you MUST pause and ask clarifying questions to obtain concrete, clear requirements before writing or editing any code.
 """
     else:
         code_blocks_text = "\n\n".join(file_contents)
@@ -193,6 +194,7 @@ If you modify the targeted files, the following code paths are affected. You MUS
 1. Backward Compatibility: Existing functionality (such as Python code indexing) must continue to work unchanged.
 2. Dependencies: Do not add new third-party dependencies or packages unless explicitly requested.
 3. Target Escape Hatch: If this task cannot be fully implemented within the targeted files listed above, output no functional changes and write a clear block comment explaining which additional files (such as parser.py or indexer.py) must be modified to achieve the goal.
+4. Clarifying Questions: If the task prompt is vague, ambiguous, or lacks functional/design specifics, you MUST pause and ask clarifying questions to obtain concrete, clear requirements before writing or editing any code.
 
 ## Output Formatting Instructions (Token Saving)
 1. Proposed Change Map: Before writing any code blocks, output a compact, tree-style visual map of your proposed modifications (using ├── and └──) indicating which files you are updating and a 1-sentence description of the change in each.
@@ -205,4 +207,5 @@ Below is the current content of the files targeted for modification:
 
 {code_blocks_text}
 """
+
     return fallback_brief
