@@ -1,8 +1,14 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR="$HOME/.dietcode"
 mkdir -p "$INSTALL_DIR"
+
+if [ -d "$SCRIPT_DIR/model" ]; then
+    rm -rf "$INSTALL_DIR/model"
+    cp -r "$SCRIPT_DIR/model" "$INSTALL_DIR/model"
+fi
 
 python -m venv "$INSTALL_DIR/venv"
 

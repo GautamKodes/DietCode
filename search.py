@@ -1,4 +1,8 @@
 import os
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+
 import json
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -6,9 +10,12 @@ from db import get_db
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TaskProgressColumn
 
 def get_model():
-    local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model")
+    local_path = os.path.expanduser("~/.dietcode/model")
     if os.path.exists(local_path):
         return SentenceTransformer(local_path)
+    package_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model")
+    if os.path.exists(package_path):
+        return SentenceTransformer(package_path)
     return SentenceTransformer("all-MiniLM-L6-v2")
 
 def generate_embeddings():
