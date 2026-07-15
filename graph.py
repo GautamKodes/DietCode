@@ -54,6 +54,16 @@ def build_dependency_graph():
     """)
     classes = cur.fetchall()
     
+    class_to_files = {}
+    for cls in classes:
+        name = cls["name"]
+        path = cls["filepath"]
+        if name not in class_to_files:
+            class_to_files[name] = set()
+        class_to_files[name].add(path)
+        
+    class_names_set = set(class_to_files.keys())
+    
     file_contents = {}
     for filepath in project_files:
         try:
@@ -67,15 +77,13 @@ def build_dependency_graph():
         if not code:
             continue
             
-        for cls in classes:
-            cls_name = cls["name"]
-            cls_file = cls["filepath"]
-            
-            if cls_file == filepath:
-                continue
-                
-            if re.search(r'\b' + re.escape(cls_name) + r'\b', code):
-                G.add_edge(cls_file, filepath)
+        words = set(re.findall(r'\b\w+\b', code))
+        matched = words.intersection(class_names_set)
+        
+        for cls_name in matched:
+            for cls_file in class_to_files[cls_name]:
+                if cls_file != filepath:
+                    G.add_edge(cls_file, filepath)
 
     conn.close()
     return G
