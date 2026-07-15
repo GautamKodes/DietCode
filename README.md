@@ -10,7 +10,7 @@ DietCode is an offline-ready, privacy-first terminal utility that indexes codeba
 * **Abstract Syntax Tree (AST) Parsing:** Uses Tree-sitter to parse code structures (classes and functions) rather than relying on brittle text matching.
 * **On-Device Semantic Search:** Converts code symbols and summaries into vector embeddings using a local Sentence-Transformers model (`all-MiniLM-L6-v2`) for conceptual code searches.
 * **Dependency & Impact Cartography:** Builds directed import graphs and traces cascading downstream impact paths (using `rich.tree` visualization).
-* **Onboarding & Codebase Maps:** Generates a project-level dashboard summarizing every file, its direct imports, and downstream dependents.
+* **Visual Structure Trees:** Prints a clean project directory tree with file purpose summaries embedded directly next to file names.
 * **Dual-Mode AI Mission Briefs:** Generates prompts in two customized modes:
   * **Web Mode:** Designed for web-based chatbots (e.g. ChatGPT / Claude Web). Includes code blocks and requests human-readable complete functions.
   * **Agent Mode:** Designed for CLI coding agents (e.g. Claude Code / Antigravity). Saves 95%+ of prompt tokens by omitting code contents and giving direct tool commands.
@@ -61,11 +61,8 @@ Trace exactly which downstream files will be affected if you edit a given file:
 dietcode impact parser.py
 ```
 
-### 🗺️ 4. Onboarding Map
-Get a colorized matrix showing every file's purpose, what it imports, and who imports it:
-```bash
-dietcode map
-```
+### 🗺️ 4. Onboarding Map (Dormant)
+*The map matrix table command is temporarily dormant/disabled.*
 
 ### 📝 5. Generate Mission Briefs
 Generate a token-optimized prompt instructing a coding AI how to execute a task:
@@ -84,7 +81,7 @@ dietcode shell
 ```
 *Example shell session:*
 ```text
-dietcode> map
+dietcode> tree
 dietcode> search Parser
 dietcode> exit
 ```
@@ -94,6 +91,7 @@ Print your project's directory tree with file purposes embedded directly next to
 ```bash
 dietcode tree
 ```
+
 
 ---
 

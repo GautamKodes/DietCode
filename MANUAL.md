@@ -17,15 +17,15 @@ dietcode index
 ```
 *DietCode traverses all source directories, ignoring Git configurations, virtual environments, and caches, and parses classes and functions using Tree-sitter.*
 
-### Step 2: Read the Codebase Map
-Generate a structural bird's-eye view table of the project:
+### Step 2: Read the Codebase Layout
+Generate a structural bird's-eye view directory tree of the project with integrated purpose summaries:
 ```bash
-dietcode map
+dietcode tree
 ```
-Use this onboarding map to:
-*   Identify the entry point files (files with no direct dependents).
-*   Understand the purpose of every file from its 1-sentence summary.
-*   Trace direct downstream connections.
+Use this visual structure to:
+*   Understand the purpose of every file from its 1-sentence summary next to the name.
+*   Identify layout entry points and source modules at a glance.
+*   Note: The old `dietcode map` matrix output command is temporarily dormant/disabled.
 
 ### Step 3: Run Concept Queries
 If you need to find where a specific functionality is implemented, run a semantic search:
@@ -83,7 +83,7 @@ To get a visual roadmap of a new codebase's folders and files, run:
 ```bash
 dietcode tree
 ```
-This prints a clean directory tree (hiding temporary folders like `.venv` or `.git`), and appends the 1-sentence purpose summary next to each file. You can see the entire layout and understand what each module does in a single glance!
+This prints a clean directory tree (hiding temporary folders like `.venv`, `.git`, `.next`, or `out`), and appends the 1-sentence purpose summary next to each file. You can see the entire layout and understand what each module does in a single glance!
 
 ---
 
@@ -96,7 +96,7 @@ dietcode shell
 ```
 Inside the shell:
 *   Use `help` to list commands.
-*   Run commands sequentially (e.g., `index` then `map` then `search database`).
+*   Run commands sequentially (e.g., `index` then `tree` then `search database`).
 *   Press `Ctrl-C` or type `exit` to quit.
 
 ---
@@ -107,7 +107,8 @@ Inside the shell:
 Run `dietcode index` again. DietCode caches symbols in a local database (`dietcode.db`) and needs to re-index to capture changes.
 
 ### Q: Can I ignore specific folders?
-Yes, DietCode automatically ignores common directories like `.git`, `node_modules`, `venv`, `.venv`, and `__pycache__` to keep the cache lightweight.
+Yes, DietCode automatically ignores common directories like `.git`, `node_modules`, `venv`, `.venv`, `.next`, `out`, and `__pycache__` to keep the cache lightweight.
 
 ### Q: Where are my model weights stored?
-They are cached locally inside the `./model` folder of the repository. This ensures DietCode runs 100% offline without downloading weights again.
+They are cached locally inside the global `~/.dietcode/model` folder (with fallback check to the repository's `./model` folder). This ensures DietCode runs 100% offline.
+
