@@ -55,10 +55,10 @@ def init():
 @app.command()
 def index(path: str = "."):
     print_banner()
-    with console.status(f"[bold blue]Indexing codebase in '{path}'...[/bold blue]", spinner="dots"):
-        index_project(path)
+    index_project(path)
 
     conn = get_db()
+
     cur = conn.cursor()
     file_count = cur.execute("SELECT COUNT(*) FROM files").fetchone()[0]
     symbol_count = cur.execute("SELECT COUNT(*) FROM symbols").fetchone()[0]

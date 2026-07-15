@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 from db import get_db, init_db
 from parser import parse_file
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TaskProgressColumn
 
 IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "build", "dist"}
 
@@ -95,60 +96,78 @@ def index_project(root_dir: str):
     conn = get_db()
     cur = conn.cursor()
 
-    indexed_files = []
-
+    files_to_index = []
     for dirpath, dirnames, filenames in os.walk(root_dir):
         dirnames[:] = [d for d in dirnames if d not in IGNORE_DIRS]
-
         for filename in filenames:
             if filename.endswith((".py", ".rs", ".java", ".js", ".jsx", ".ts", ".tsx")):
-                filepath = os.path.join(dirpath, filename)
-                try:
-                    cur.execute(
-                        "INSERT OR IGNORE INTO files (filepath) VALUES (?)",
-                        (filepath,)
-                    )
+                files_to_index.append(os.path.join(dirpath, filename))
 
-                    cur.execute(
-                        "SELECT id FROM files WHERE filepath = ?",
-                        (filepath,)
-                    )
-                    file_id = cur.fetchone()["id"]
-                    cur.execute("DELETE FROM symbols WHERE file_id = ?", (file_id,))
-                    cur.execute("DELETE FROM imports WHERE file_id = ?", (file_id,))
+    if not files_to_index:
+        conn.close()
+        return
 
-                    symbols, imports = parse_file(filepath)
+    indexed_files = []
 
-                    for sym in symbols:
-                        cur.execute("""
-                            INSERT INTO symbols (file_id, name, type, start_line, end_line, content) 
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        """, (
-                            file_id,
-                            sym["name"],
-                            sym["type"],
-                            sym["start_line"],
-                            sym["end_line"],
-                            sym["content"]
-                        ))
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(bar_width=40),
+        TaskProgressColumn(),
+        transient=True
+    ) as progress:
+        task = progress.add_task("[bold cyan]Indexing files...", total=len(files_to_index))
+        
+        for filepath in files_to_index:
+            progress.update(task, description=f"[bold cyan]Indexing: {os.path.basename(filepath)}")
+            try:
+                cur.execute(
+                    "INSERT OR IGNORE INTO files (filepath) VALUES (?)",
+                    (filepath,)
+                )
 
-                    for imp in imports:
-                        cur.execute("""
-                            INSERT INTO imports (file_id, imported_module) 
-                            VALUES (?, ?)
-                        """, (
-                            file_id,
-                            imp
-                        ))
+                cur.execute(
+                    "SELECT id FROM files WHERE filepath = ?",
+                    (filepath,)
+                )
+                file_id = cur.fetchone()["id"]
+                cur.execute("DELETE FROM symbols WHERE file_id = ?", (file_id,))
+                cur.execute("DELETE FROM imports WHERE file_id = ?", (file_id,))
 
-                    file_summary = generate_file_summary(filepath, symbols)
-                    cur.execute(
-                        "UPDATE files SET summary = ?, last_indexed = CURRENT_TIMESTAMP WHERE id = ?",
-                        (file_summary, file_id)
-                    )
-                    indexed_files.append((filepath, file_summary))
-                except Exception as e:
-                    print(f"⚠️ Warning: Failed to index {filepath}: {e}")
+                symbols, imports = parse_file(filepath)
+
+                for sym in symbols:
+                    cur.execute("""
+                        INSERT INTO symbols (file_id, name, type, start_line, end_line, content) 
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (
+                        file_id,
+                        sym["name"],
+                        sym["type"],
+                        sym["start_line"],
+                        sym["end_line"],
+                        sym["content"]
+                    ))
+
+                for imp in imports:
+                    cur.execute("""
+                        INSERT INTO imports (file_id, imported_module) 
+                        VALUES (?, ?)
+                    """, (
+                        file_id,
+                        imp
+                    ))
+
+                file_summary = generate_file_summary(filepath, symbols)
+                cur.execute(
+                    "UPDATE files SET summary = ?, last_indexed = CURRENT_TIMESTAMP WHERE id = ?",
+                    (file_summary, file_id)
+                )
+                indexed_files.append((filepath, file_summary))
+            except Exception as e:
+                print(f"⚠️ Warning: Failed to index {filepath}: {e}")
+                
+            progress.advance(task)
 
     project_summary = generate_project_summary(indexed_files)
     cur.execute(
