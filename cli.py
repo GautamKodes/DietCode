@@ -162,7 +162,9 @@ def brief(
     console.print(Panel(Markdown(brief_content), title="Mission Brief Preview", border_style="green"))
 
 @app.command()
-def map():
+def map(
+    filter_path: str = typer.Option(None, "--filter", "-f", help="Only show files containing this path/pattern")
+):
     print_banner()
     from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TaskProgressColumn
     
@@ -176,9 +178,13 @@ def map():
     files = cur.fetchall()
     conn.close()
     
+    if filter_path:
+        files = [f for f in files if filter_path.lower() in f["filepath"].lower()]
+        
     if not files:
-        console.print("[yellow]Codebase is empty. Run index command first to populate files.[/yellow]")
+        console.print("[yellow]No files matched the filter or codebase is empty. Run index command first to populate files.[/yellow]")
         return
+
 
     table = Table(
         title="Codebase File Map",
