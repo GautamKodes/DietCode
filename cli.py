@@ -55,8 +55,8 @@ def init():
 @app.command()
 def index(path: str = "."):
     print_banner()
-    console.print(f"[bold blue]Indexing codebase in '{path}'...[/bold blue]")
-    index_project(path)
+    with console.status(f"[bold blue]Indexing codebase in '{path}'...[/bold blue]", spinner="dots"):
+        index_project(path)
 
     conn = get_db()
     cur = conn.cursor()
@@ -83,8 +83,8 @@ def index(path: str = "."):
 @app.command()
 def search(query: str):
     print_banner()
-    console.print(f"[bold blue]Searching semantically for '{query}'...[/bold blue]")
-    results = semantic_search(query)
+    with console.status(f"[bold blue]Searching semantically for '{query}'...[/bold blue]", spinner="dots"):
+        results = semantic_search(query)
     
     if not results:
         console.print("[yellow]No matching code symbols found.[/yellow]")
@@ -115,9 +115,9 @@ def search(query: str):
 @app.command()
 def impact(filepath: str):
     print_banner()
-    console.print(f"[bold blue]Calculating change impact for '{filepath}'...[/bold blue]")
-    
-    T = get_impact_tree(filepath)
+    with console.status(f"[bold blue]Calculating change impact for '{filepath}'...[/bold blue]", spinner="dots"):
+        T = get_impact_tree(filepath)
+        
     if not T or len(T.nodes) <= 1:
         console.print("[yellow]No downstream impact detected. This file is not imported by any other project files.[/yellow]")
         return
@@ -141,8 +141,8 @@ def brief(
     mode: str = typer.Option("web", "--mode", "-m", help="Target mode: 'web' (human copy-paste layout) or 'agent' (token-efficient agent layout)")
 ):
     print_banner()
-    console.print(f"[bold blue]Generating mission brief for: '{task}' in '{mode}' mode...[/bold blue]")
-    brief_content = build_mission_brief(task, force_files=files, mode=mode)
+    with console.status(f"[bold blue]Generating mission brief for: '{task}'...[/bold blue]", spinner="dots"):
+        brief_content = build_mission_brief(task, force_files=files, mode=mode)
     
     with open("MISSION_BRIEF.md", "w", encoding="utf-8") as f:
         f.write(brief_content)
@@ -153,108 +153,106 @@ def brief(
 @app.command()
 def map():
     print_banner()
-    console.print("[bold blue]Generating Codebase Dependency & Onboarding Map...[/bold blue]\n")
-    
-    conn = get_db()
-    cur = conn.cursor()
-    
-    cur.execute("SELECT value FROM project_meta WHERE key = 'summary'")
-    summary_row = cur.fetchone()
-    project_summary = summary_row["value"] if summary_row else "No project overview cached. Run index first."
-    
-    cur.execute("SELECT filepath, summary FROM files")
-    files = cur.fetchall()
-    conn.close()
-    
-    if not files:
-        console.print("[yellow]Codebase is empty. Run index command first to populate files.[/yellow]")
-        return
+    with console.status("[bold blue]Generating Codebase Dependency Map...[/bold blue]", spinner="dots"):
+        conn = get_db()
+        cur = conn.cursor()
+        
+        cur.execute("SELECT value FROM project_meta WHERE key = 'summary'")
+        summary_row = cur.fetchone()
+        project_summary = summary_row["value"] if summary_row else "No project overview cached. Run index first."
+        
+        cur.execute("SELECT filepath, summary FROM files")
+        files = cur.fetchall()
+        conn.close()
+        
+        if not files:
+            console.print("[yellow]Codebase is empty. Run index command first to populate files.[/yellow]")
+            return
+
+        G = build_dependency_graph()
+
+        table = Table(
+            title="Codebase File Map",
+            title_style="bold cyan",
+            box=box.ROUNDED,
+            border_style="blue",
+            header_style="bold white",
+            show_lines=True
+        )
+        table.add_column("File Path", style="cyan")
+        table.add_column("1-Sentence Purpose", style="white")
+        table.add_column("Imports (Direct)", style="magenta")
+        table.add_column("Direct Dependents", style="yellow")
+
+        for f in files:
+            filepath = f["filepath"]
+            summary = f["summary"] or "No description."
+            
+            predecessors = [os.path.basename(p) for p in G.predecessors(filepath)]
+            imports_text = "\n".join(predecessors) if predecessors else "None"
+            
+            successors = [os.path.basename(p) for p in G.successors(filepath)]
+            dependents_text = "\n".join(successors) if successors else "None"
+            
+            table.add_row(
+                os.path.basename(filepath),
+                summary,
+                imports_text,
+                dependents_text
+            )
 
     console.print(Panel(project_summary, title="Project Overview", border_style="cyan"))
-
-    G = build_dependency_graph()
-
-    table = Table(
-        title="Codebase File Map",
-        title_style="bold cyan",
-        box=box.ROUNDED,
-        border_style="blue",
-        header_style="bold white",
-        show_lines=True
-    )
-    table.add_column("File Path", style="cyan")
-    table.add_column("1-Sentence Purpose", style="white")
-    table.add_column("Imports (Direct)", style="magenta")
-    table.add_column("Direct Dependents", style="yellow")
-
-    for f in files:
-        filepath = f["filepath"]
-        summary = f["summary"] or "No description."
-        
-        predecessors = [os.path.basename(p) for p in G.predecessors(filepath)]
-        imports_text = "\n".join(predecessors) if predecessors else "None"
-        
-        successors = [os.path.basename(p) for p in G.successors(filepath)]
-        dependents_text = "\n".join(successors) if successors else "None"
-        
-        table.add_row(
-            os.path.basename(filepath),
-            summary,
-            imports_text,
-            dependents_text
-        )
-        
     console.print(table)
 
 @app.command()
 def tree(path: str = "."):
     print_banner()
-    console.print(f"[bold blue]Generating Codebase Structure Tree for '{path}'...[/bold blue]\n")
-    
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT filepath, summary FROM files")
-    file_summaries = {r["filepath"]: r["summary"] for r in cur.fetchall()}
-    conn.close()
-    
-    root_path = os.path.abspath(path)
-    if not os.path.exists(root_path):
-        console.print(f"[red]Error: Path '{path}' does not exist.[/red]")
-        return
+    with console.status(f"[bold blue]Generating Codebase Structure Tree...[/bold blue]", spinner="dots"):
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT filepath, summary FROM files")
+        file_summaries = {r["filepath"]: r["summary"] for r in cur.fetchall()}
+        conn.close()
         
-    IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "dietcode.egg-info", "build", "dist"}
-    
-    root_node = Tree(f"📁 [bold cyan]{os.path.basename(root_path) or root_path}[/bold cyan]")
-    
-    def build_tree(current_path, parent_tree):
-        try:
-            entries = sorted(os.listdir(current_path))
-        except Exception:
+        root_path = os.path.abspath(path)
+        if not os.path.exists(root_path):
+            console.print(f"[red]Error: Path '{path}' does not exist.[/red]")
             return
             
-        for entry in entries:
-            if entry in IGNORE_DIRS:
-                continue
+        IGNORE_DIRS = {".git", "node_modules", "venv", "__pycache__", ".venv", "model", "dietcode.egg-info", "build", "dist"}
+        
+        root_node = Tree(f"📁 [bold cyan]{os.path.basename(root_path) or root_path}[/bold cyan]")
+        
+        def build_tree(current_path, parent_tree):
+            try:
+                entries = sorted(os.listdir(current_path))
+            except Exception:
+                return
                 
-            entry_path = os.path.join(current_path, entry)
-            matched_summary = None
-            for db_path, summary in file_summaries.items():
-                if os.path.abspath(db_path) == os.path.abspath(entry_path):
-                    matched_summary = summary
-                    break
-            
-            if os.path.isdir(entry_path):
-                branch = parent_tree.add(f"📁 [bold blue]{entry}[/bold blue]")
-                build_tree(entry_path, branch)
-            else:
-                if entry.endswith((".py", ".rs", ".java")):
-                    summary_text = f" [dim]• {matched_summary}[/dim]" if matched_summary else " [dim]• (Unindexed)[/dim]"
-                    parent_tree.add(f"📄 [green]{entry}[/green]{summary_text}")
-                else:
-                    summary_text = f" [dim]• {matched_summary}[/dim]" if matched_summary else ""
-                    parent_tree.add(f"📄 [white]{entry}[/white]{summary_text}")
+            for entry in entries:
+                if entry in IGNORE_DIRS:
+                    continue
                     
-    build_tree(root_path, root_node)
+                entry_path = os.path.join(current_path, entry)
+                matched_summary = None
+                for db_path, summary in file_summaries.items():
+                    if os.path.abspath(db_path) == os.path.abspath(entry_path):
+                        matched_summary = summary
+                        break
+                
+                if os.path.isdir(entry_path):
+                    branch = parent_tree.add(f"📁 [bold blue]{entry}[/bold blue]")
+                    build_tree(entry_path, branch)
+                else:
+                    if entry.endswith((".py", ".rs", ".java", ".js", ".jsx", ".ts", ".tsx")):
+                        summary_text = f" [dim]• {matched_summary}[/dim]" if matched_summary else " [dim]• (Unindexed)[/dim]"
+                        parent_tree.add(f"📄 [green]{entry}[/green]{summary_text}")
+                    else:
+                        summary_text = f" [dim]• {matched_summary}[/dim]" if matched_summary else ""
+                        parent_tree.add(f"📄 [white]{entry}[/white]{summary_text}")
+                        
+        build_tree(root_path, root_node)
+        
     console.print(root_node)
 
 @app.command()
