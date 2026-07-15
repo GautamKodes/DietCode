@@ -57,7 +57,11 @@ def parse_file(filepath: str):
     while stack:
         node = stack.pop()
         
-        if node.type in ("function_definition", "function_item", "method_declaration", "constructor_declaration", "class_declaration", "function_declaration", "method_definition"):
+        if node.type in (
+            "function_definition", "function_item", "method_declaration", "constructor_declaration", 
+            "class_declaration", "function_declaration", "method_definition",
+            "interface_declaration", "record_declaration", "enum_declaration", "type_alias_declaration"
+        ):
             name_node = node.child_by_field_name("name")
             if not name_node:
                 for child in node.children:
@@ -66,7 +70,10 @@ def parse_file(filepath: str):
                         break
             if name_node:
                 name = code_bytes[name_node.start_byte:name_node.end_byte].decode("utf-8")
-                sym_type = "class" if node.type == "class_declaration" else "function"
+                sym_type = "class" if node.type in (
+                    "class_declaration", "interface_declaration", "record_declaration", 
+                    "enum_declaration", "type_alias_declaration"
+                ) else "function"
                 symbols.append({
                     "name": name,
                     "type": sym_type,
