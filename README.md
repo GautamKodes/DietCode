@@ -238,25 +238,6 @@ Ask codebase-aware questions using local semantic search and your local Ollama L
 
 ---
 
-### ✍️ 9. Autonomous Code Writer
-Describe a programming task and let the local AI implement and write it directly to the target file.
-
-* **Command:**
-  ```bash
-  dietcode write "<TASK>" [OPTIONS]
-  ```
-* **Sample Input:**
-  ```bash
-  dietcode write "Add helper log statement in init_db" --file db.py
-  ```
-* **Expected Output:**
-  A preview of the proposed updated code block followed by a confirmation prompt:
-  ```text
-  Would you like to write these changes to the file? [y/N]: y
-  ✓ Successfully wrote updates to db.py.
-  ```
-
----
 
 
 ## 🗃️ Database Schema
