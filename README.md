@@ -238,6 +238,31 @@ Ask codebase-aware questions using local semantic search and your local Ollama L
 
 ---
 
+### 👥 9. Duplicate Logic Detector
+Locate copy-paste code blocks and redundant helper functions system-wide.
+
+* **Command:**
+  ```bash
+  dietcode clone-check [OPTIONS]
+  ```
+* **Sample Input:**
+  ```bash
+  dietcode clone-check --threshold 0.85
+  ```
+* **Expected Output:**
+  A similarity matrix listing duplicate symbols and locations:
+  ```text
+                               Duplicate Logic Analysis                            
+  ╭────────────┬───────────┬───────────┬──────────────────────┬────────────────────╮
+  │ Similarity │ Symbol A  │ Symbol B  │ Location A           │ Location B         │
+  ├────────────┼───────────┼───────────┼──────────────────────┼────────────────────┤
+  │      94.2% │ helper_a  │ helper_b  │ utils/core.py:12     │ utils/helper.py:42 │
+  ╰────────────┴───────────┴───────────┴──────────────────────┴────────────────────╯
+  ```
+
+---
+
+
 
 
 ## 🗃️ Database Schema

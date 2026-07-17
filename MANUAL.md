@@ -105,6 +105,17 @@ dietcode ask "How are AST parsed files indexed?"
 
 ---
 
+## 👥 Duplicate Logic Detector
+
+To audit your codebase for duplicate or highly redundant helper functions:
+```bash
+dietcode clone-check --threshold 0.85
+```
+*DietCode will scan all indexed function and method bodies, normalize whitespaces, remove comments, and cross-compare them to output a similarity matrix highlighting candidate refactoring locations.*
+
+---
+
+
 
 ## 🐚 REPL Shell Quick Tips
 

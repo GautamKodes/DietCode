@@ -321,6 +321,111 @@ def ask(question: str):
 
 
 @app.command()
+def clone_check(
+    threshold: float = typer.Option(0.8, "--threshold", "-t", help="Minimum similarity threshold (0.0 to 1.0) to report.")
+):
+    print_banner()
+    import difflib
+    
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT s.name, s.content, f.filepath, s.start_line 
+        FROM symbols s
+        JOIN files f ON s.file_id = f.id
+        WHERE s.type IN ('function', 'method')
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    
+    if not rows:
+        console.print("[yellow]No function or method symbols found in the database. Run 'dietcode index' first.[/yellow]")
+        return
+
+    def normalize_code(code: str) -> str:
+        lines = []
+        for line in code.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("#") or line.startswith("//"):
+                continue
+            lines.append(line)
+        return "\n".join(lines)
+
+    candidates = []
+    for r in rows:
+        name = r["name"]
+        content = r["content"] or ""
+        filepath = r["filepath"]
+        start_line = r["start_line"]
+        
+        normalized = normalize_code(content)
+        if len(normalized) >= 60 and len(content.splitlines()) >= 4:
+            candidates.append({
+                "name": name,
+                "filepath": filepath,
+                "start_line": start_line,
+                "content": content,
+                "normalized": normalized
+            })
+
+    if len(candidates) < 2:
+        console.print("[yellow]Not enough eligible functions (minimum 4 lines / 60 chars) to compare.[/yellow]")
+        return
+
+    duplicates = []
+    with console.status("[bold blue]Analyzing code similarity pairs...[/bold blue]", spinner="dots"):
+        for i in range(len(candidates)):
+            for j in range(i + 1, len(candidates)):
+                c1 = candidates[i]
+                c2 = candidates[j]
+                
+                if c1["filepath"] == c2["filepath"] and c1["start_line"] == c2["start_line"]:
+                    continue
+                    
+                len1 = len(c1["normalized"])
+                len2 = len(c2["normalized"])
+                if min(len1, len2) / max(len1, len2) < threshold - 0.1:
+                    continue
+                    
+                ratio = difflib.SequenceMatcher(None, c1["normalized"], c2["normalized"]).ratio()
+                if ratio >= threshold:
+                    duplicates.append((ratio, c1, c2))
+
+    if not duplicates:
+        console.print(f"[green]✓ No duplicate logic found above {threshold*100:.0f}% similarity![/green]")
+        return
+
+    duplicates.sort(key=lambda x: x[0], reverse=True)
+
+    table = Table(
+        title="Duplicate Logic Analysis",
+        title_style="bold cyan",
+        box=box.ROUNDED,
+        border_style="blue",
+        header_style="bold white",
+        show_lines=True
+    )
+    table.add_column("Similarity", style="green", justify="right")
+    table.add_column("Symbol A", style="cyan")
+    table.add_column("Symbol B", style="cyan")
+    table.add_column("Location A", style="white")
+    table.add_column("Location B", style="white")
+
+    for ratio, c1, c2 in duplicates:
+        table.add_row(
+            f"{ratio*100:.1f}%",
+            c1["name"],
+            c2["name"],
+            f"{c1['filepath']}:{c1['start_line']}",
+            f"{c2['filepath']}:{c2['start_line']}"
+        )
+
+    console.print(table)
+
+
+@app.command()
 def shell():
     print_banner()
     console.print("[bold green]Welcome to the DietCode Interactive Shell![/bold green]")
