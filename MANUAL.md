@@ -92,6 +92,26 @@ This prints a clean directory tree (hiding temporary folders like `.venv`, `.git
 
 ---
 
+## 💬 Local AI Assistant (Q&A & Code Generation)
+
+DietCode has built-in local AI execution commands that talk directly to a local Ollama instance running Qwen2.5-Coder.
+
+### 1. Codebase Q&A (RAG)
+To ask questions about how the codebase works, run:
+```bash
+dietcode ask "How are AST parsed files indexed?"
+```
+*DietCode retrieves the top relevant code symbols, packages them as context, and queries the local LLM for a precise explanation.*
+
+### 2. Autonomous Code Writing
+To let the local AI directly implement modifications in a file, run:
+```bash
+dietcode write "Add debug logging statements inside init_db" --file db.py
+```
+*DietCode will send the task and file content to the LLM, output a formatted preview of the proposed changes, and ask you to confirm before writing them in-place.*
+
+---
+
 ## 🐚 REPL Shell Quick Tips
 
 

@@ -215,6 +215,50 @@ Open a persistent terminal takeover shell where you can run commands instantly.
 
 ---
 
+### 💬 8. Codebase Q&A (RAG)
+Ask codebase-aware questions using local semantic search and your local Ollama LLM.
+
+* **Command:**
+  ```bash
+  dietcode ask "<QUESTION>"
+  ```
+* **Sample Input:**
+  ```bash
+  dietcode ask "How does the database initialize?"
+  ```
+* **Expected Output:**
+  A Markdown-formatted panel answering your question by explaining the specific code:
+  ```text
+  ╭────────────────────── Local AI Assistant Response ───────────────────────╮
+  │ The database is initialized by the `init_db` function inside `db.py` on   │
+  │ line 12. It creates the SQLite database connection, sets up tables for    │
+  │ `files`, `symbols`, and `imports`, and configures WAL journaling.        │
+  ╰──────────────────────────────────────────────────────────────────────────╯
+  ```
+
+---
+
+### ✍️ 9. Autonomous Code Writer
+Describe a programming task and let the local AI implement and write it directly to the target file.
+
+* **Command:**
+  ```bash
+  dietcode write "<TASK>" [OPTIONS]
+  ```
+* **Sample Input:**
+  ```bash
+  dietcode write "Add helper log statement in init_db" --file db.py
+  ```
+* **Expected Output:**
+  A preview of the proposed updated code block followed by a confirmation prompt:
+  ```text
+  Would you like to write these changes to the file? [y/N]: y
+  ✓ Successfully wrote updates to db.py.
+  ```
+
+---
+
+
 ## 🗃️ Database Schema
 
 DietCode maintains a local SQLite database cache (`dietcode.db`) containing:
