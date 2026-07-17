@@ -185,19 +185,7 @@ def map(
         console.print("[yellow]No files matched the filter or codebase is empty. Run index command first to populate files.[/yellow]")
         return
 
-    table = Table(
-        title="Codebase File Map",
-        title_style="bold cyan",
-        box=box.ROUNDED,
-        border_style="blue",
-        header_style="bold white",
-        show_lines=True,
-        expand=True
-    )
-    table.add_column("File Path", style="cyan", ratio=3)
-    table.add_column("1-Sentence Purpose", style="white", ratio=5)
-    table.add_column("Imports (Direct)", style="magenta", ratio=2)
-    table.add_column("Direct Dependents", style="yellow", ratio=2)
+    tree = Tree("[bold cyan]Codebase File Map[/bold cyan]", guide_style="blue")
 
     with Progress(
         SpinnerColumn(),
@@ -217,23 +205,23 @@ def map(
             progress.update(task_rows, description=f"[bold cyan]Mapping: {os.path.basename(filepath)}")
             
             predecessors = [os.path.basename(p) for p in G.predecessors(filepath)]
-            imports_text = "\n".join(predecessors) if predecessors else "None"
+            imports_text = ", ".join(predecessors) if predecessors else "None"
             
             successors = [os.path.basename(p) for p in G.successors(filepath)]
-            dependents_text = "\n".join(successors) if successors else "None"
+            dependents_text = ", ".join(successors) if successors else "None"
             
-            table.add_row(
-                filepath,
-                f["summary"] or "No description.",
-                imports_text,
-                dependents_text
-            )
+            file_node = tree.add(f"[bold cyan]📄 {filepath}[/bold cyan]")
+            file_node.add(f"[bold white]Purpose:[/bold white] {f['summary'] or 'No description.'}")
+            file_node.add(f"[bold magenta]Imports (Direct):[/bold magenta] {imports_text}")
+            file_node.add(f"[bold yellow]Direct Dependents:[/bold yellow] {dependents_text}")
+            
             progress.advance(task_rows)
 
 
     with console.pager(styles=True):
         console.print(Panel(project_summary, title="Project Overview", border_style="cyan"))
-        console.print(table)
+        console.print(tree)
+
 
 
 @app.command()

@@ -107,15 +107,13 @@ Generates a colorized grid overview showing every file's purpose, what it import
 * **Expected Output:**
   A fullscreen scrollable pager (press `q` to exit) showing:
   ```text
-  Codebase File Map                                
-  ╭─────────────┬─────────────────────────┬───────────────────┬──────────────────╮
-  │ File Path   │ 1-Sentence Purpose      │ Imports (Direct)  │ Direct Dependents│
-  ├─────────────┼─────────────────────────┼───────────────────┼──────────────────┤
-  │ ./db.py     │ Handles SQLite database │ None              │ search.py        │
-  │             │ caching and queries.    │                   │ indexer.py       │
-  │             │                         │                   │ cli.py           │
-  ╰─────────────┴─────────────────────────┴───────────────────┴──────────────────╯
+  Codebase File Map
+  └── 📄 ./db.py
+      ├── Purpose: Handles SQLite database caching and queries.
+      ├── Imports (Direct): None
+      └── Direct Dependents: search.py, indexer.py, cli.py
   ```
+
 
 ---
 
