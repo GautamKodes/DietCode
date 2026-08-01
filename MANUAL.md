@@ -6,7 +6,6 @@ Welcome to the DietCode User Manual. This guide explains how to integrate DietCo
 ---
 
 ## 🗺️ Developer Onboarding Workflow (Day 1)
-
 When you are assigned to a new or legacy repository, use the following sequence to map the codebase instantly:
 
 ### Step 1: Initialize and Scan
