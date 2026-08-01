@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DietCode 🥤 | On-Device AI Code Cartographer & Analyzer</title>
+  <meta name="description" content="An offline-ready, privacy-first local CLI utility that indexes codebases, maps dependency impact paths, performs semantic search, and runs codebase Q&A.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="logo.jpg" type="image/jpeg">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="#" class="logo" id="header-logo-link">
+        <span class="logo-prefix">diet</span><span class="logo-suffix">code</span>
+        <span class="logo-version">v1.0</span>
+      </a>
+      <nav id="header-navigation">
+        <a href="#features" id="nav-features">Features</a>
+        <a href="#laboratory" id="nav-laboratory">Laboratory</a>
+        <a href="#install" id="nav-install">Install</a>
+        <a href="https://github.com/GautamKodes/DietCode" class="btn-github" id="nav-github-link" target="_blank">
+          <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero-section">
+      <div class="hero-scan-line"></div>
+      <div class="container">
+        <h1>Map, Search, and<br>100% Offline.</h1>
+        <p>DietCode is an offline intelligence engine for modern developers. Index massive repositories instantly without your code ever leaving your machine.</p>
+        <div class="hero-ctas">
+          <a href="#install" class="btn-primary" id="hero-btn-install">Install Now</a>
+          <a href="https://github.com/GautamKodes/DietCode" class="btn-secondary" id="hero-btn-github" target="_blank">View GitHub</a>
+        </div>
+
+        <div class="terminal-container-wrapper" id="hero-terminal-wrapper">
+          <div class="floating-badge badge-top-left">INDEXING ACTIVE</div>
+          <div class="floating-badge badge-top-right">SEMANTIC SCAN v1.0</div>
+          <div class="floating-badge badge-bottom-left">LLM: Qwen2.5-Coder (1.5B)</div>
+          <div class="floating-badge badge-bottom-right">V-DB: SQLite (WAL)</div>
+
+          <div class="terminal-mockup" id="hero-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <div class="terminal-title">analyzer / workspace / local_engine</div>
+              <div style="width: 42px;"></div>
+            </div>
+            <div class="terminal-split-body">
+              <div class="terminal-lhs">
+                <div class="terminal-lhs-scanline"></div>
+                <div class="terminal-lhs-title">Local Vector DB</div>
+                <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">Mock Tree Visualization</div>
+                <div style="color: var(--cyan); margin-bottom: 12px;">... indexing files ...</div>
+                <pre style="color: #64748B; font-size: 12px; line-height: 1.4;">
+📁 src
+├── 📁 auth
+│   ├── 📄 validator.rs
+│   └── 📄 session.rs
+├── 📁 api
+│   └── 📄 middleware.rs
+└── 📄 db.rs</pre>
+              </div>
+              <div class="terminal-rhs">
+                <pre id="terminal-text" style="white-space: pre-wrap; font-family: var(--font-code); color: #E2E8F0;"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="container">
+        <h2 class="section-title">Uncompromising Offline Intelligence</h2>
+        <div class="features-grid">
+          <div class="feature-card" id="feature-ast">
+            <div class="feature-icon">🌳</div>
+            <h3>AST Parsing</h3>
+            <p>Advanced syntax analysis for deep structural mapping across 40+ languages without an internet connection.</p>
+          </div>
+          <div class="feature-card" id="feature-search">
+            <div class="feature-icon">🔍</div>
+            <h3>On-Device Search</h3>
+            <p>Sub-millisecond semantic search powered by local vector embeddings stored in a blazing fast SQLite shell.</p>
+          </div>
+          <div class="feature-card" id="feature-impact">
+            <div class="feature-icon">🚨</div>
+            <h3>Impact Audits</h3>
+            <p>Visualize how a single line change ripples across your entire architecture before you even hit save.</p>
+          </div>
+          <div class="feature-card" id="feature-qa">
+            <div class="feature-icon">💬</div>
+            <h3>Dual-Mode AI</h3>
+            <p>Choose between pure local LLM execution or secure cloud proxies. Your context, your rules, your privacy.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="interactive-demo" id="laboratory">
+      <div class="container">
+        <h2 class="section-title">Interactive Laboratory</h2>
+        <p style="text-align: center; color: var(--text-muted); font-size: 18px; max-width: 600px; margin: -40px auto 48px auto;">Click the commands in the sidebar to simulate the DietCode CLI engine.</p>
+        <div class="demo-layout">
+          <div class="demo-sidebar" id="demo-controls">
+            <div class="demo-sidebar-title">Available Commands</div>
+            <button class="demo-btn active" data-cmd="index" id="btn-demo-index">dietcode index</button>
+            <button class="demo-btn" data-cmd="tree" id="btn-demo-tree">dietcode tree</button>
+            <button class="demo-btn" data-cmd="map" id="btn-demo-map">dietcode map</button>
+            <button class="demo-btn" data-cmd="search" id="btn-demo-search">dietcode search</button>
+            <button class="demo-btn" data-cmd="impact" id="btn-demo-impact">dietcode impact</button>
+            <button class="demo-btn" data-cmd="ask" id="btn-demo-ask">dietcode ask</button>
+            <button class="demo-btn" data-cmd="clone" id="btn-demo-clone">dietcode clone-check</button>
+            <button class="demo-btn btn-reset" id="btn-demo-reset">Reset Terminal</button>
+          </div>
+          <div class="terminal-mockup" id="demo-terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <div class="terminal-title">Main Terminal Display</div>
+              <div style="width: 42px;"></div>
+            </div>
+            <div class="terminal-body" style="min-height: 320px;">
+              <pre id="terminal-text-demo" style="white-space: pre-wrap; font-family: var(--font-code); color: #E2E8F0;"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="installation" id="install">
+      <div class="container">
+        <div class="install-grid">
+          <div class="install-info">
+            <h3>Quick Start</h3>
+            <p>Get running in under 60 seconds. Our installer handles all local dependencies, including vector DB initialization and AST engine setup.</p>
+            <ul class="install-list">
+              <li>Zero cloud configuration required</li>
+              <li>Works on MacOS, Linux, and WSL2</li>
+            </ul>
+          </div>
+          <div class="install-box">
+            <div class="install-label">Shell Command</div>
+            <div class="code-block" id="block-install">
+              <pre id="code-install" style="font-family: var(--font-code); font-size: 13px; line-height: 1.5; color: #E2E8F0;">git clone https://github.com/GautamKodes/DietCode
+cd DietCode
+bash install.sh --production</pre>
+              <button class="btn-copy" onclick="copyToClipboard('code-install', 'btn-copy-install')" id="btn-copy-install">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2024 GautamKodes Labs. Offline Intelligence for the Modern Dev.</p>
+      <div class="badge" id="badge-privacy">100% On-Device AI</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
