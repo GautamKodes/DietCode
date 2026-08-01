@@ -99,6 +99,11 @@ header .container {
   text-decoration: none;
 }
 
+.logo-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+}
+
 .logo-prefix {
   font-size: 20px;
   font-weight: 300;
