@@ -87,65 +87,10 @@ header:hover {
 
 header .container {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 0;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.logo:hover {
-  opacity: 0.95;
-}
-
-.logo-icon-wrapper {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, rgba(0, 242, 254, 0.15) 0%, rgba(79, 172, 254, 0.05) 100%);
-  border: 1px solid rgba(0, 242, 254, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  box-shadow: 0 0 16px rgba(0, 242, 254, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
-}
-
-.logo:hover .logo-icon-wrapper {
-  transform: scale(1.06) rotate(-4deg);
-  box-shadow: 0 0 20px rgba(0, 242, 254, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
-}
-
-.logo-wordmark {
-  display: inline-flex;
-  align-items: center;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.logo-prefix {
-  font-size: 20px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.02em;
-}
-
-.logo-suffix {
-  font-size: 20px;
-  font-weight: 800;
-  color: #FFFFFF;
-  letter-spacing: -0.02em;
-  text-transform: none;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.15);
+  width: 100%;
 }
 
 .logo-version {
@@ -164,6 +109,8 @@ header .container {
 nav {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 24px;
 }
 
